@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="점심메뉴 룰렛">
+  <link rel="apple-touch-icon" href="icon.png">
+  <meta property="og:title" content="점심메뉴 룰렛">
+  <meta property="og:description" content="오늘 뭐 먹지? 룰렛으로 점심 메뉴를 골라보세요!">
+  <meta property="og:image" content="opengraph.png">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://c36949.github.io/1">
   <meta charset="UTF-8">
   <title>점심메뉴 룰렛</title>
   <style>
@@ -197,6 +208,18 @@
 
     spinButton.onclick = spinWheel;
     drawWheel();
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(registration => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          }, err => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
   </script>
 </body>
 </html>
