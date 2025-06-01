@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>점심메뉴 룰렛</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f8f8f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 40px;
+      overflow-x: hidden;
+    }
+    #app {
+      text-align: center;
+    }
+    canvas {
+      margin-top: 20px;
+    }
+    #menuInput {
+      width: 300px;
+      padding: 8px;
+      font-size: 16px;
+    }
+    #updateButton, #spinButton {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #result {
+      font-size: 24px;
+      margin-top: 20px;
+      color: #333;
+      font-weight: bold;
+    }
+    #popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 2px solid #888;
+      padding: 30px 50px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      font-size: 20px;
+      font-weight: bold;
+      z-index: 1000;
+    }
+    .emoji {
+      font-size: 40px;
+      margin: 10px 0;
+    }
+    .confetti {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      opacity: 1;
+      animation: fall 2s linear forwards;
+      z-index: 9999;
+    }
+    @keyframes fall {
+      0% {
+        transform: translateY(0) rotate(0deg);
+      }
+      100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>점심 메뉴 룰렛</h1>
+    <input id="menuInput" type="text" placeholder="쉼표로 구분해 메뉴 입력 (예: 김밥,라면,우동)">
+    <button id="updateButton">메뉴 설정</button>
+    <br>
+    <canvas id="wheel" width="400" height="400"></canvas>
+    <br>
+    <button id="spinButton">룰렛 돌리기</button>
+    <div id="result"></div>
+    <div id="popup">
+      <div class="emoji">🎉🥳🍱</div>
+      메뉴가 설정되었습니다!
+    </div>
+  </div>
+
+  <script>
+    let items = ['김치찌개', '돈까스', '비빔밥', '라면', '짜장면', '샐러드'];
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const resultDiv = document.getElementById('result');
+    const updateButton = document.getElementById('updateButton');
+    const menuInput = document.getElementById('menuInput');
+    const spinButton = document.getElementById('spinButton');
+    const popup = document.getElementById('popup');
+
+    let angle = 0;
+    let isSpinning = false;
+
+    function drawWheel() {
+      const total = items.length;
+      const arc = 2 * Math.PI / total;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < total; i++) {
+        const start = angle + i * arc;
+        const end = start + arc;
+        ctx.beginPath();
+        ctx.moveTo(200, 200);
+        ctx.arc(200, 200, 190, start, end);
+        ctx.fillStyle = `hsl(${i * 360 / total}, 70%, 60%)`;
+        ctx.fill();
+        ctx.save();
+        ctx.translate(200, 200);
+        ctx.rotate(start + arc / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "white";
+        ctx.font = "16px Arial";
+        ctx.fillText(items[i], 180, 10);
+        ctx.restore();
+      }
+
+      // 포인터
+      ctx.beginPath();
+      ctx.moveTo(200, 10);
+      ctx.lineTo(190, 30);
+      ctx.lineTo(210, 30);
+      ctx.fillStyle = 'red';
+      ctx.fill();
+    }
+
+    function spinWheel() {
+      if (isSpinning) return;
+      isSpinning = true;
+      let spinAngle = Math.random() * 90 + 360 * 1.5;
+      let start = angle;
+      let end = angle + spinAngle;
+      const duration = 4000;
+      const startTime = performance.now();
+
+      function animate(t) {
+        const elapsed = t - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        angle = start + (end - start) * easeOutCubic(progress);
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          isSpinning = false;
+          const arc = 2 * Math.PI / items.length;
+          const norm
+          const selectedIndex = Math.floor(normalizedAngle / arc) % items.length;
+          resultDiv.textContent = `오늘의 점심은 "${items[selectedIndex % items.length]}"!`;
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    function easeOutCubic(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    function showPopup() {
+      popup.style.display = 'block';
+      setTimeout(() => {
+        popup.style.display = 'none';
+      }, 2000);
+    }
+
+    function launchConfetti() {
+      for (let i = 0; i < 30; i++) {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.top = '-10px';
+        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 2000);
+      }
+    }
+
+    updateButton.onclick = () => {
+      const input = menuInput.value;
+      if (input.trim()) {
+        items = input.split(',').map(x => x.trim()).filter(x => x);
+        drawWheel();
+        showPopup();
+        launchConfetti();
+      }
+    };
+
+    spinButton.onclick = () => {
+      spinWheel();
+      showPopup();
+      launchConfetti();
+    };
+
+    drawWheel();
+  </script>
+</body>
+</html>
