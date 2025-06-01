@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <title>점심메뉴 룰렛</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       font-family: 'Arial', sans-serif;
       background: #f8f8f8;
@@ -16,12 +14,8 @@
       padding-top: 40px;
       overflow-x: hidden;
     }
-    #app {
-      text-align: center;
-    }
-    canvas {
-      margin-top: 20px;
-    }
+    #app { text-align: center; }
+    canvas { margin-top: 20px; }
     #menuInput {
       width: 300px;
       padding: 8px;
@@ -67,13 +61,8 @@
       z-index: 9999;
     }
     @keyframes fall {
-      0% {
-        transform: translateY(0) rotate(0deg);
-      }
-      100% {
-        transform: translateY(100vh) rotate(720deg);
-        opacity: 0;
-      }
+      0% { transform: translateY(0) rotate(0deg); }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
     }
   </style>
 </head>
@@ -87,10 +76,7 @@
     <br>
     <button id="spinButton">룰렛 돌리기</button>
     <div id="result"></div>
-    <div id="popup">
-      <div class="emoji">🎉🥳🍱</div>
-      메뉴가 설정되었습니다!
-    </div>
+    <div id="popup"></div>
   </div>
 
   <script>
@@ -129,11 +115,15 @@
         ctx.restore();
       }
 
-      // 포인터
+      // 짧은 시침 형태의 포인터
       ctx.beginPath();
-      ctx.moveTo(200, 10);
-      ctx.lineTo(190, 30);
-      ctx.lineTo(210, 30);
+      ctx.moveTo(200, 200);
+      ctx.lineTo(200, 120);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'red';
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(200, 200, 6, 0, 2 * Math.PI);
       ctx.fillStyle = 'red';
       ctx.fill();
     }
@@ -158,9 +148,14 @@
         } else {
           isSpinning = false;
           const arc = 2 * Math.PI / items.length;
-          const norm
-          const selectedIndex = Math.floor(normalizedAngle / arc) % items.length;
-          resultDiv.textContent = `오늘의 점심은 "${items[selectedIndex % items.length]}"!`;
+          angle = angle % (2 * Math.PI);
+          const normalizedAngle = (2 * Math.PI - angle + Math.PI / 2) % (2 * Math.PI);
+          let selectedIndex = Math.floor(normalizedAngle / arc) % items.length;
+          const selectedItem = items[selectedIndex] || "선택된 항목 없음";
+          resultDiv.textContent = `오늘의 점심은 "${selectedItem}"!`;
+          popup.innerHTML = `<div class='emoji'>🎉🥳🍱</div><div><strong>오늘의 점심은 "${selectedItem}" 입니다!</strong></div>`;
+          showPopup();
+          launchConfetti();
         }
       }
       requestAnimationFrame(animate);
@@ -194,17 +189,13 @@
       if (input.trim()) {
         items = input.split(',').map(x => x.trim()).filter(x => x);
         drawWheel();
+        popup.innerHTML = `<div class='emoji'>🎉🥳🍱</div><div>메뉴가 설정되었습니다!</div>`;
         showPopup();
         launchConfetti();
       }
     };
 
-    spinButton.onclick = () => {
-      spinWheel();
-      showPopup();
-      launchConfetti();
-    };
-
+    spinButton.onclick = spinWheel;
     drawWheel();
   </script>
 </body>
